@@ -1,0 +1,115 @@
+Kuripot App - TODO List
+======================
+
+General
+-------
+- [ ] Polish overall app theme and color palette for better branding
+- [ ] Add onboarding/welcome screen for first-time users
+- [ ] Add app icon and splash screen
+- [ ] Add accessibility improvements (content descriptions, font scaling)
+- [ ] Add error handling and user feedback for all async operations
+- [ ] Add loading indicators where needed (e.g., DB operations, audio)
+- [ ] Add haptic feedback for key actions (e.g., passcode, add/delete)
+- [ ] Add more unit and UI tests
+- [ ] Add support for landscape/tablet layouts
+- [ ] Add in-app help/about page
+
+Passcode
+--------
+- [ ] Add option to show/hide passcode (eye icon)
+- [ ] Add ability to change passcode from settings
+- [ ] Add forgot passcode flow (with warning: all data will be lost)
+- [ ] Add biometric unlock (future)
+- [ ] Add haptic feedback on incorrect entry
+- [ ] Add animation for incorrect passcode
+
+Notes Screen
+------------
+- [ ] Implement note editing dialog (currently only basic edit)
+- [ ] Add swipe-to-delete/archive for notes
+- [ ] Add undo snackbar for delete/archive
+- [ ] Add note pinning/favorites
+- [ ] Add note color/label/tag support
+- [ ] Add search highlight in results
+- [ ] Add multi-select for batch actions (delete/archive)
+- [ ] Add voice note playback UI (progress, pause, stop)
+- [ ] Add image attachment support (future)
+- [ ] Add markdown or rich text support (future)
+- [ ] Add empty state illustration
+- [ ] Add better error messages for note actions
+
+Categories
+----------
+- [ ] Add category editing dialog
+- [ ] Add category color/icon selection
+- [ ] Prevent deleting category if in use (show message)
+- [ ] Add reorder categories (drag & drop)
+
+Budget Screen
+-------------
+- [ ] Add month/year picker for budget view
+- [ ] Add chart/graph for income/expense trends
+- [ ] Add export to CSV for budget entries
+- [ ] Add filter by subcategory
+- [ ] Add recurring income/expense support
+- [ ] Add budget limits/alerts
+- [ ] Add empty state illustration
+- [ ] Add undo for delete
+- [ ] Add better error messages for budget actions
+
+Settings
+--------
+- [ ] Add theme preview in settings
+- [ ] Add about/help section
+- [ ] Add option to clear all data (with confirmation)
+- [ ] Add import file picker (currently TODO)
+- [ ] Add export location selection
+- [ ] Add backup/restore to Google Drive (future)
+- [ ] Add feedback/contact option
+
+Archives
+--------
+- [ ] Implement restore logic for notes and budgets (currently just deletes from archive)
+- [ ] Add permanent delete confirmation dialog
+- [ ] Add search/filter in archives
+- [ ] Add empty state illustration
+
+Audio/Voice Notes
+-----------------
+- [ ] Add audio playback controls (pause, seek, stop)
+- [ ] Add waveform or duration display
+- [ ] Add audio file size/duration limit
+- [ ] Add error handling for audio permission issues
+- [ ] Add support for .ogg format (currently only .m4a)
+
+Import/Export
+-------------
+- [ ] Add file picker for import (currently TODO)
+- [ ] Add progress indicator for import/export
+- [ ] Add merge/overwrite options for import
+- [ ] Add error handling for invalid/corrupt files
+- [ ] Add export/import success/failure dialogs
+
+Testing
+-------
+- [ ] Add more unit tests for ViewModels and Repositories
+- [ ] Add UI tests for navigation, passcode, and data state
+- [ ] Add instrumentation tests for audio and import/export
+
+Polish & UX
+-----------
+- [ ] Add transitions/animations between screens
+- [ ] Add Material You dynamic color support
+- [ ] Add vibration/haptic feedback for key actions
+- [ ] Add snackbar/toast for all user actions
+- [ ] Add confirmation dialogs for destructive actions
+
+Missing Functions/Features (per page)
+-------------------------------------
+- [ ] Notes: Edit, pin, multi-select, batch delete/archive, voice note playback UI
+- [ ] Categories: Edit, reorder, color/icon selection
+- [ ] Budget: Month/year picker, charts, CSV export, recurring entries, budget limits
+- [ ] Settings: Import file picker, export location, clear data, about/help
+- [ ] Archives: Restore logic, search/filter, confirmation dialogs
+- [ ] Audio: Playback controls, waveform, error handling
+- [ ] Import/Export: Progress, merge/overwrite, error handling 
