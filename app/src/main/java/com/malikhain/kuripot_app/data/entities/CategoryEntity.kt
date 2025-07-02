@@ -7,5 +7,8 @@ import androidx.room.PrimaryKey
 data class CategoryEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val title: String,
-    val isDefault: Boolean = false
+    val isDefault: Boolean = false,
+    val color: String = "#FF6200EE", // Default Material Design primary color
+    val icon: String = "label", // Default icon name
+    val sortOrder: Int = 0
 ) 

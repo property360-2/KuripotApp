@@ -32,4 +32,10 @@ interface BudgetEntryDao {
     
     @Query("SELECT * FROM budget_entries WHERE id = :id")
     suspend fun getBudgetEntryById(id: Int): BudgetEntryEntity?
+    
+    @Query("SELECT * FROM budget_entries WHERE isRecurring = 1")
+    suspend fun getRecurringEntries(): List<BudgetEntryEntity>
+    
+    @Query("UPDATE budget_entries SET nextRecurringDate = :nextDate WHERE id = :entryId")
+    suspend fun updateNextRecurringDate(entryId: Int, nextDate: String)
 } 

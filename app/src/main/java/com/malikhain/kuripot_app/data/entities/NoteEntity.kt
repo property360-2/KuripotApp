@@ -11,5 +11,6 @@ data class NoteEntity(
     val categoryId: Int,
     val createdAt: String,
     val voicePath: String?,
-    val isBudget: Boolean = false
+    val isBudget: Boolean = false,
+    val isPinned: Boolean = false
 ) 

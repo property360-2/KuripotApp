@@ -32,9 +32,9 @@ class NotesViewModel(
         }
         .flatMapLatest { (categoryId, query) ->
             when {
-                query.isNotEmpty() -> noteRepository.searchNotes(query)
-                categoryId != null -> noteRepository.getNotesByCategory(categoryId)
-                else -> noteRepository.getAllNotes()
+                query.isNotEmpty() -> noteRepository.searchNotesWithPinnedFirst(query)
+                categoryId != null -> noteRepository.getNotesByCategoryWithPinnedFirst(categoryId)
+                else -> noteRepository.getAllNotesWithPinnedFirst()
             }
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
@@ -42,8 +42,20 @@ class NotesViewModel(
     private val _isRecording = MutableStateFlow(false)
     val isRecording: StateFlow<Boolean> = _isRecording
     
+    private val _isMultiSelectMode = MutableStateFlow(false)
+    val isMultiSelectMode: StateFlow<Boolean> = _isMultiSelectMode
+    
+    private val _selectedNotes = MutableStateFlow<Set<Int>>(emptySet())
+    val selectedNotes: StateFlow<Set<Int>> = _selectedNotes
+    
     private val _currentRecordingPath = MutableStateFlow<String?>(null)
     val currentRecordingPath: StateFlow<String?> = _currentRecordingPath
+    
+    private val _currentPlayingAudio = MutableStateFlow<String?>(null)
+    val currentPlayingAudio: StateFlow<String?> = _currentPlayingAudio
+    
+    private val _isAudioPaused = MutableStateFlow(false)
+    val isAudioPaused: StateFlow<Boolean> = _isAudioPaused
     
     fun selectCategory(categoryId: Int?) {
         _selectedCategoryId.value = categoryId
@@ -80,6 +92,66 @@ class NotesViewModel(
         }
     }
     
+    fun restoreNote(note: NoteEntity) {
+        viewModelScope.launch {
+            noteRepository.insertNote(note)
+        }
+    }
+    
+    fun togglePin(note: NoteEntity) {
+        viewModelScope.launch {
+            noteRepository.togglePin(note.id, !note.isPinned)
+        }
+    }
+    
+    fun toggleMultiSelectMode() {
+        _isMultiSelectMode.value = !_isMultiSelectMode.value
+        if (!_isMultiSelectMode.value) {
+            _selectedNotes.value = emptySet()
+        }
+    }
+    
+    fun toggleNoteSelection(noteId: Int) {
+        val currentSelected = _selectedNotes.value.toMutableSet()
+        if (currentSelected.contains(noteId)) {
+            currentSelected.remove(noteId)
+        } else {
+            currentSelected.add(noteId)
+        }
+        _selectedNotes.value = currentSelected
+    }
+    
+    fun selectAllNotes() {
+        val allNoteIds = notes.value.map { it.id }.toSet()
+        _selectedNotes.value = allNoteIds
+    }
+    
+    fun clearSelection() {
+        _selectedNotes.value = emptySet()
+    }
+    
+    fun deleteSelectedNotes() {
+        viewModelScope.launch {
+            val notesToDelete = notes.value.filter { it.id in _selectedNotes.value }
+            notesToDelete.forEach { note ->
+                noteRepository.deleteNote(note)
+            }
+            _selectedNotes.value = emptySet()
+            _isMultiSelectMode.value = false
+        }
+    }
+    
+    fun archiveSelectedNotes() {
+        viewModelScope.launch {
+            val notesToArchive = notes.value.filter { it.id in _selectedNotes.value }
+            notesToArchive.forEach { note ->
+                noteRepository.deleteNote(note) // This will archive the note
+            }
+            _selectedNotes.value = emptySet()
+            _isMultiSelectMode.value = false
+        }
+    }
+    
     fun addCategory(title: String) {
         viewModelScope.launch {
             categoryRepository.insertCategory(CategoryEntity(title = title))
@@ -110,14 +182,49 @@ class NotesViewModel(
     
     fun playAudio(audioPath: String) {
         viewModelScope.launch {
-            audioService.startPlayback(audioPath)
+            if (_currentPlayingAudio.value == audioPath) {
+                // Same audio, toggle pause/resume
+                if (_isAudioPaused.value) {
+                    audioService.resumePlayback()
+                    _isAudioPaused.value = false
+                } else {
+                    audioService.pausePlayback()
+                    _isAudioPaused.value = true
+                }
+            } else {
+                // Different audio, start new playback
+                audioService.startPlayback(audioPath).onSuccess {
+                    _currentPlayingAudio.value = audioPath
+                    _isAudioPaused.value = false
+                }
+            }
         }
     }
     
     fun stopAudio() {
         viewModelScope.launch {
             audioService.stopPlayback()
+            _currentPlayingAudio.value = null
+            _isAudioPaused.value = false
         }
+    }
+    
+    fun pauseAudio() {
+        viewModelScope.launch {
+            audioService.pausePlayback()
+            _isAudioPaused.value = true
+        }
+    }
+    
+    fun resumeAudio() {
+        viewModelScope.launch {
+            audioService.resumePlayback()
+            _isAudioPaused.value = false
+        }
+    }
+    
+    fun seekAudio(position: Long) {
+        audioService.seekTo(position)
     }
     
     fun clearRecording() {

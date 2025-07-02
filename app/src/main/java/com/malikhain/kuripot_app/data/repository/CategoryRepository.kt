@@ -30,4 +30,18 @@ class CategoryRepository(private val categoryDao: CategoryDao) {
             insertCategory(CategoryEntity(title = "Budget", isDefault = true))
         }
     }
+    
+    fun getAllCategoriesOrdered(): Flow<List<CategoryEntity>> = categoryDao.getAllCategoriesOrdered()
+    
+    suspend fun updateCategoryOrder(categoryId: Int, sortOrder: Int) = 
+        categoryDao.updateCategoryOrder(categoryId, sortOrder)
+    
+    suspend fun updateCategoryDetails(categoryId: Int, title: String, color: String, icon: String) =
+        categoryDao.updateCategoryDetails(categoryId, title, color, icon)
+    
+    suspend fun reorderCategories(categories: List<CategoryEntity>) {
+        categories.forEachIndexed { index, category ->
+            updateCategoryOrder(category.id, index)
+        }
+    }
 } 

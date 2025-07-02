@@ -40,7 +40,7 @@ fun KuripotAppRoot() {
     // Repositories
     val noteRepository = remember { NoteRepository(db.noteDao(), db.archiveDao()) }
     val categoryRepository = remember { CategoryRepository(db.categoryDao()) }
-    val budgetRepository = remember { BudgetRepository(db.budgetEntryDao(), db.archiveDao()) }
+            val budgetRepository = remember { BudgetRepository(db.budgetEntryDao(), db.archiveDao(), db.budgetLimitDao()) }
     val archiveRepository = remember { ArchiveRepository(db.archiveDao()) }
     val settingRepository = remember { SettingRepository(db.settingDao()) }
 

@@ -40,8 +40,10 @@ class AudioService(private val context: Context) {
             
             isRecording = true
             Result.success(file.absolutePath)
+        } catch (e: SecurityException) {
+            Result.failure(Exception("Microphone permission denied. Please grant microphone access in settings."))
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception("Failed to start recording: ${e.message}"))
         }
     }
     
@@ -75,6 +77,11 @@ class AudioService(private val context: Context) {
                 return@withContext Result.failure(Exception("Audio file not found"))
             }
             
+            // Check file size limit (10MB)
+            if (file.length() > 10 * 1024 * 1024) {
+                return@withContext Result.failure(Exception("Audio file too large (max 10MB)"))
+            }
+            
             exoPlayer = ExoPlayer.Builder(context).build().apply {
                 val mediaItem = MediaItem.fromUri(Uri.fromFile(file))
                 setMediaItem(mediaItem)
@@ -85,7 +92,7 @@ class AudioService(private val context: Context) {
             isPlaying = true
             Result.success(Unit)
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception("Failed to play audio: ${e.message}"))
         }
     }
     
@@ -116,6 +123,18 @@ class AudioService(private val context: Context) {
         exoPlayer?.seekTo(position)
     }
     
+    fun pausePlayback() {
+        exoPlayer?.pause()
+        isPlaying = false
+    }
+    
+    fun resumePlayback() {
+        exoPlayer?.play()
+        isPlaying = true
+    }
+    
+    fun isPlaybackPaused(): Boolean = exoPlayer?.isPlaying == false && exoPlayer != null
+    
     fun deleteAudioFile(audioPath: String): Boolean {
         return try {
             val file = File(audioPath)
@@ -126,6 +145,64 @@ class AudioService(private val context: Context) {
             }
         } catch (e: Exception) {
             false
+        }
+    }
+    
+    suspend fun startRecordingOgg(): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            if (isRecording) {
+                return@withContext Result.failure(Exception("Already recording"))
+            }
+            
+            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+            val fileName = "voice_note_$timestamp.ogg"
+            val file = File(context.filesDir, fileName)
+            currentRecordingPath = file.absolutePath
+            
+            mediaRecorder = MediaRecorder().apply {
+                setAudioSource(MediaRecorder.AudioSource.MIC)
+                setOutputFormat(MediaRecorder.OutputFormat.OGG)
+                setAudioEncoder(MediaRecorder.AudioEncoder.OPUS)
+                setOutputFile(file.absolutePath)
+                prepare()
+                start()
+            }
+            
+            isRecording = true
+            Result.success(file.absolutePath)
+        } catch (e: SecurityException) {
+            Result.failure(Exception("Microphone permission denied. Please grant microphone access in settings."))
+        } catch (e: Exception) {
+            Result.failure(Exception("Failed to start OGG recording: ${e.message}"))
+        }
+    }
+    
+    fun getAudioFileSize(audioPath: String): Long {
+        return try {
+            val file = File(audioPath)
+            if (file.exists()) file.length() else 0L
+        } catch (e: Exception) {
+            0L
+        }
+    }
+    
+    fun getAudioDuration(audioPath: String): Long {
+        return try {
+            val file = File(audioPath)
+            if (!file.exists()) return 0L
+            
+            val tempPlayer = ExoPlayer.Builder(context).build()
+            val mediaItem = MediaItem.fromUri(Uri.fromFile(file))
+            tempPlayer.setMediaItem(mediaItem)
+            tempPlayer.prepare()
+            
+            // Wait a bit for duration to be available
+            Thread.sleep(100)
+            val duration = tempPlayer.duration
+            tempPlayer.release()
+            duration
+        } catch (e: Exception) {
+            0L
         }
     }
 } 

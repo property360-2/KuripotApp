@@ -21,6 +21,9 @@ class PasscodeViewModel(private val settingDao: SettingDao) : ViewModel() {
     private val _isPasscodeSet = MutableStateFlow(false)
     val isPasscodeSet: StateFlow<Boolean> = _isPasscodeSet
 
+    private val _showForgotPasscodeDialog = MutableStateFlow(false)
+    val showForgotPasscodeDialog: StateFlow<Boolean> = _showForgotPasscodeDialog
+
     init {
         viewModelScope.launch {
             _isPasscodeSet.value = settingDao.getSettingValue("passcode") != null
@@ -46,6 +49,7 @@ class PasscodeViewModel(private val settingDao: SettingDao) : ViewModel() {
             } else {
                 _error.value = "Incorrect passcode."
                 _pin.value = ""
+                _showForgotPasscodeDialog.value = true
             }
         }
     }
@@ -61,9 +65,26 @@ class PasscodeViewModel(private val settingDao: SettingDao) : ViewModel() {
                 return@launch
             }
             val hash = PasscodeUtils.hashPasscode(passcode)
-            settingDao.insertSetting(com.malikhain.kuripot_app.data.entities.SettingEntity("passcode", hash))
+            settingDao.insertSetting(com.malikhain.kuripot_app.data.entities.SettingEntity(key = "passcode", value = hash))
             _isPasscodeSet.value = true
             _unlocked.value = true
+        }
+    }
+
+    fun showForgotPasscodeDialog() {
+        _showForgotPasscodeDialog.value = true
+    }
+
+    fun hideForgotPasscodeDialog() {
+        _showForgotPasscodeDialog.value = false
+    }
+
+    fun resetPasscode() {
+        viewModelScope.launch {
+            settingDao.deleteSetting("passcode")
+            _isPasscodeSet.value = false
+            _showForgotPasscodeDialog.value = false
+            _error.value = null
         }
     }
 } 

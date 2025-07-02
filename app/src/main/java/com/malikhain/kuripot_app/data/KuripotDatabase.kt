@@ -12,6 +12,7 @@ import com.malikhain.kuripot_app.data.entities.*
         NoteEntity::class,
         CategoryEntity::class,
         BudgetEntryEntity::class,
+        BudgetLimitEntity::class,
         ArchiveEntity::class,
         SettingEntity::class
     ],
@@ -23,6 +24,7 @@ abstract class KuripotDatabase : RoomDatabase() {
     abstract fun noteDao(): NoteDao
     abstract fun categoryDao(): CategoryDao
     abstract fun budgetEntryDao(): BudgetEntryDao
+    abstract fun budgetLimitDao(): BudgetLimitDao
     abstract fun archiveDao(): ArchiveDao
     abstract fun settingDao(): SettingDao
     

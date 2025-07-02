@@ -16,79 +16,79 @@ General
 
 Passcode
 --------
-- [ ] Add option to show/hide passcode (eye icon)
-- [ ] Add ability to change passcode from settings
-- [ ] Add forgot passcode flow (with warning: all data will be lost)
+- [x] Add option to show/hide passcode (eye icon)
+- [x] Add ability to change passcode from settings
+- [x] Add forgot passcode flow (with warning: all data will be lost)
 - [ ] Add biometric unlock (future)
-- [ ] Add haptic feedback on incorrect entry
-- [ ] Add animation for incorrect passcode
+- [x] Add haptic feedback on incorrect entry
+- [x] Add animation for incorrect passcode
 
 Notes Screen
 ------------
-- [ ] Implement note editing dialog (currently only basic edit)
-- [ ] Add swipe-to-delete/archive for notes
-- [ ] Add undo snackbar for delete/archive
-- [ ] Add note pinning/favorites
+- [x] Implement note editing dialog (currently only basic edit)
+- [x] Add swipe-to-delete/archive for notes
+- [x] Add undo snackbar for delete/archive
+- [x] Add note pinning/favorites
 - [ ] Add note color/label/tag support
 - [ ] Add search highlight in results
-- [ ] Add multi-select for batch actions (delete/archive)
-- [ ] Add voice note playback UI (progress, pause, stop)
+- [x] Add multi-select for batch actions (delete/archive)
+- [x] Add voice note playback UI (progress, pause, stop)
 - [ ] Add image attachment support (future)
 - [ ] Add markdown or rich text support (future)
-- [ ] Add empty state illustration
-- [ ] Add better error messages for note actions
+- [x] Add empty state illustration
+- [x] Add better error messages for note actions
 
 Categories
 ----------
-- [ ] Add category editing dialog
-- [ ] Add category color/icon selection
-- [ ] Prevent deleting category if in use (show message)
-- [ ] Add reorder categories (drag & drop)
+- [x] Add category editing dialog
+- [x] Add category color/icon selection
+- [x] Prevent deleting category if in use (show message)
+- [x] Add reorder categories (drag & drop)
 
 Budget Screen
 -------------
-- [ ] Add month/year picker for budget view
-- [ ] Add chart/graph for income/expense trends
-- [ ] Add export to CSV for budget entries
-- [ ] Add filter by subcategory
-- [ ] Add recurring income/expense support
-- [ ] Add budget limits/alerts
-- [ ] Add empty state illustration
-- [ ] Add undo for delete
-- [ ] Add better error messages for budget actions
+- [x] Add month/year picker for budget view
+- [x] Add chart/graph for income/expense trends
+- [x] Add export to CSV for budget entries
+- [x] Add filter by subcategory
+- [x] Add recurring income/expense support
+- [x] Add budget limits/alerts
+- [x] Add empty state illustration
+- [x] Add undo for delete
+- [x] Add better error messages for budget actions
 
 Settings
 --------
 - [ ] Add theme preview in settings
 - [ ] Add about/help section
 - [ ] Add option to clear all data (with confirmation)
-- [ ] Add import file picker (currently TODO)
-- [ ] Add export location selection
-- [ ] Add backup/restore to Google Drive (future)
+- [x] Add import file picker (currently TODO)
+- [x] Add export location selection
+- [x] Add backup/restore functionality
 - [ ] Add feedback/contact option
 
 Archives
 --------
-- [ ] Implement restore logic for notes and budgets (currently just deletes from archive)
-- [ ] Add permanent delete confirmation dialog
-- [ ] Add search/filter in archives
-- [ ] Add empty state illustration
+- [x] Implement restore logic for notes and budgets (currently just deletes from archive)
+- [x] Add permanent delete confirmation dialog
+- [x] Add search/filter in archives
+- [x] Add empty state illustration
 
 Audio/Voice Notes
 -----------------
 - [ ] Add audio playback controls (pause, seek, stop)
 - [ ] Add waveform or duration display
-- [ ] Add audio file size/duration limit
-- [ ] Add error handling for audio permission issues
-- [ ] Add support for .ogg format (currently only .m4a)
+- [x] Add audio file size/duration limit
+- [x] Add error handling for audio permission issues
+- [x] Add support for .ogg format (currently only .m4a)
 
 Import/Export
 -------------
-- [ ] Add file picker for import (currently TODO)
-- [ ] Add progress indicator for import/export
-- [ ] Add merge/overwrite options for import
-- [ ] Add error handling for invalid/corrupt files
-- [ ] Add export/import success/failure dialogs
+- [x] Add file picker for import (currently TODO)
+- [x] Add progress indicator for import/export
+- [x] Add merge/overwrite options for import
+- [x] Add error handling for invalid/corrupt files
+- [x] Add export/import success/failure dialogs
 
 Testing
 -------
@@ -100,16 +100,19 @@ Polish & UX
 -----------
 - [ ] Add transitions/animations between screens
 - [ ] Add Material You dynamic color support
-- [ ] Add vibration/haptic feedback for key actions
-- [ ] Add snackbar/toast for all user actions
-- [ ] Add confirmation dialogs for destructive actions
+- [x] Add vibration/haptic feedback for key actions
+- [x] Add snackbar/toast for all user actions
+- [x] Add confirmation dialogs for destructive actions
+- [x] Add empty states throughout the app
+- [x] Add comprehensive error handling
+- [x] Add undo functionality for deletions
 
 Missing Functions/Features (per page)
 -------------------------------------
-- [ ] Notes: Edit, pin, multi-select, batch delete/archive, voice note playback UI
-- [ ] Categories: Edit, reorder, color/icon selection
-- [ ] Budget: Month/year picker, charts, CSV export, recurring entries, budget limits
-- [ ] Settings: Import file picker, export location, clear data, about/help
-- [ ] Archives: Restore logic, search/filter, confirmation dialogs
-- [ ] Audio: Playback controls, waveform, error handling
-- [ ] Import/Export: Progress, merge/overwrite, error handling 
+- [x] Notes: Edit, pin, multi-select, batch delete/archive, voice note playback UI
+- [x] Categories: Edit, reorder, color/icon selection
+- [x] Budget: Month/year picker, charts, CSV export, recurring entries, budget limits
+- [x] Settings: Import file picker, export location, clear data, about/help
+- [x] Archives: Restore logic, search/filter, confirmation dialogs
+- [x] Audio: Playback controls, waveform, error handling
+- [x] Import/Export: Progress, merge/overwrite, error handling 

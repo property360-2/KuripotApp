@@ -29,4 +29,16 @@ interface NoteDao {
     
     @Query("SELECT * FROM notes WHERE title LIKE '%' || :query || '%' OR content LIKE '%' || :query || '%'")
     fun searchNotes(query: String): Flow<List<NoteEntity>>
+    
+    @Query("UPDATE notes SET isPinned = :isPinned WHERE id = :noteId")
+    suspend fun togglePin(noteId: Int, isPinned: Boolean)
+    
+    @Query("SELECT * FROM notes ORDER BY isPinned DESC, createdAt DESC")
+    fun getAllNotesWithPinnedFirst(): Flow<List<NoteEntity>>
+    
+    @Query("SELECT * FROM notes WHERE categoryId = :categoryId ORDER BY isPinned DESC, createdAt DESC")
+    fun getNotesByCategoryWithPinnedFirst(categoryId: Int): Flow<List<NoteEntity>>
+    
+    @Query("SELECT * FROM notes WHERE title LIKE '%' || :query || '%' OR content LIKE '%' || :query || '%' ORDER BY isPinned DESC, createdAt DESC")
+    fun searchNotesWithPinnedFirst(query: String): Flow<List<NoteEntity>>
 } 

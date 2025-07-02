@@ -2,8 +2,10 @@ package com.malikhain.kuripot_app.data.repository
 
 import com.malikhain.kuripot_app.data.dao.BudgetEntryDao
 import com.malikhain.kuripot_app.data.dao.ArchiveDao
+import com.malikhain.kuripot_app.data.dao.BudgetLimitDao
 import com.malikhain.kuripot_app.data.entities.BudgetEntryEntity
 import com.malikhain.kuripot_app.data.entities.ArchiveEntity
+import com.malikhain.kuripot_app.data.entities.BudgetLimitEntity
 import com.malikhain.kuripot_app.model.BudgetEntryExport
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.encodeToString
@@ -12,7 +14,8 @@ import com.malikhain.kuripot_app.utils.DateUtils
 
 class BudgetRepository(
     private val budgetEntryDao: BudgetEntryDao,
-    private val archiveDao: ArchiveDao
+    private val archiveDao: ArchiveDao,
+    private val budgetLimitDao: BudgetLimitDao
 ) {
     
     fun getBudgetEntriesByNoteId(noteId: Int): Flow<List<BudgetEntryEntity>> = 
@@ -66,4 +69,17 @@ class BudgetRepository(
     
     suspend fun getBudgetEntryById(id: Int): BudgetEntryEntity? = 
         budgetEntryDao.getBudgetEntryById(id)
+    
+    suspend fun insertBudgetLimit(limit: BudgetLimitEntity) = budgetLimitDao.insertBudgetLimit(limit)
+    suspend fun updateBudgetLimit(limit: BudgetLimitEntity) = budgetLimitDao.updateBudgetLimit(limit)
+    suspend fun deleteBudgetLimit(limit: BudgetLimitEntity) = budgetLimitDao.deleteBudgetLimit(limit)
+    fun getBudgetLimitsByMonth(month: String) = budgetLimitDao.getBudgetLimitsByMonth(month)
+    suspend fun getBudgetLimitByCategoryAndMonth(categoryId: Int, month: String) = budgetLimitDao.getBudgetLimitByCategoryAndMonth(categoryId, month)
+    fun getAllActiveBudgetLimits() = budgetLimitDao.getAllActiveBudgetLimits()
+    suspend fun updateSpentAmount(limitId: Int, spent: Double, updatedAt: String) = budgetLimitDao.updateSpentAmount(limitId, spent, updatedAt)
+    fun getOverBudgetLimits() = budgetLimitDao.getOverBudgetLimits()
+    
+    // Recurring logic
+    suspend fun getRecurringEntries() = budgetEntryDao.getRecurringEntries()
+    suspend fun updateNextRecurringDate(entryId: Int, nextDate: String) = budgetEntryDao.updateNextRecurringDate(entryId, nextDate)
 } 

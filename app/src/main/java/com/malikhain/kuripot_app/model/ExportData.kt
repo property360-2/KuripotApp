@@ -19,14 +19,18 @@ data class NoteExport(
     val categoryId: Int,
     val createdAt: String,
     val voicePath: String?,
-    val isBudget: Boolean
+    val isBudget: Boolean,
+    val isPinned: Boolean? = null
 )
 
 @Serializable
 data class CategoryExport(
     val id: Int,
     val title: String,
-    val isDefault: Boolean
+    val isDefault: Boolean,
+    val color: String? = null,
+    val icon: String? = null,
+    val sortOrder: Int? = null
 )
 
 @Serializable

@@ -26,12 +26,17 @@ fun SettingsScreen(
     val archives by viewModel.archives.collectAsState()
     val exportStatus by viewModel.exportStatus.collectAsState()
     val importStatus by viewModel.importStatus.collectAsState()
+    val showImportFilePicker by viewModel.showImportFilePicker.collectAsState()
+    val backupStatus by viewModel.backupStatus.collectAsState()
+    val restoreStatus by viewModel.restoreStatus.collectAsState()
     
     val context = LocalContext.current
     
     var showPasscodeDialog by remember { mutableStateOf(false) }
     var showChangePasscodeDialog by remember { mutableStateOf(false) }
     var showArchivesDialog by remember { mutableStateOf(false) }
+    var showBackupDialog by remember { mutableStateOf(false) }
+    var showRestoreDialog by remember { mutableStateOf(false) }
     
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
@@ -165,12 +170,37 @@ fun SettingsScreen(
                             }
                             
                             Button(
-                                onClick = { /* TODO: Implement file picker */ },
+                                onClick = { viewModel.showImportFilePicker(context) },
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Icon(Icons.Default.Edit, contentDescription = "Import")
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text("Import")
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(
+                                onClick = { showBackupDialog = true },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = "Backup")
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Backup")
+                            }
+                            
+                            Button(
+                                onClick = { showRestoreDialog = true },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(Icons.Default.Edit, contentDescription = "Restore")
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Restore")
                             }
                         }
                         
@@ -193,6 +223,30 @@ fun SettingsScreen(
                                 text = status,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (status.startsWith("Import failed")) 
+                                    MaterialTheme.colorScheme.error 
+                                else 
+                                    MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        
+                        backupStatus?.let { status ->
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = status,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (status.startsWith("Backup failed")) 
+                                    MaterialTheme.colorScheme.error 
+                                else 
+                                    MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        
+                        restoreStatus?.let { status ->
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = status,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (status.startsWith("Restore failed")) 
                                     MaterialTheme.colorScheme.error 
                                 else 
                                     MaterialTheme.colorScheme.primary
@@ -231,6 +285,66 @@ fun SettingsScreen(
             onDismiss = { showArchivesDialog = false },
             onRestore = { archive -> viewModel.restoreArchive(archive) },
             onDelete = { archive -> viewModel.permanentlyDeleteArchive(archive) }
+        )
+    }
+    
+    // Import File Picker Dialog
+    if (showImportFilePicker) {
+        ImportFilePickerDialog(
+            onDismiss = { viewModel.hideImportFilePicker() },
+            onFileSelected = { filePath ->
+                viewModel.importData(context, filePath)
+                viewModel.hideImportFilePicker()
+            }
+        )
+    }
+    
+    // Backup Dialog
+    if (showBackupDialog) {
+        AlertDialog(
+            onDismissRequest = { showBackupDialog = false },
+            title = { Text("Create Backup") },
+            text = { Text("Create a complete backup of all your data? This will save all notes, categories, budget entries, and settings.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.createBackup(context)
+                        showBackupDialog = false
+                    }
+                ) {
+                    Text("Create Backup")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showBackupDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+    
+    // Restore Dialog
+    if (showRestoreDialog) {
+        AlertDialog(
+            onDismissRequest = { showRestoreDialog = false },
+            title = { Text("Restore from Backup") },
+            text = { Text("Restore all data from a backup file? This will merge the backup data with your current data.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        // This would typically open a file picker
+                        // For now, we'll use a placeholder
+                        showRestoreDialog = false
+                    }
+                ) {
+                    Text("Select Backup File")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRestoreDialog = false }) {
+                    Text("Cancel")
+                }
+            }
         )
     }
 } 

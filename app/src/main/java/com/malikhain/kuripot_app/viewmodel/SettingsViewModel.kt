@@ -33,6 +33,15 @@ class SettingsViewModel(
     private val _importStatus = MutableStateFlow<String?>(null)
     val importStatus: StateFlow<String?> = _importStatus
     
+    private val _showImportFilePicker = MutableStateFlow(false)
+    val showImportFilePicker: StateFlow<Boolean> = _showImportFilePicker
+    
+    private val _backupStatus = MutableStateFlow<String?>(null)
+    val backupStatus: StateFlow<String?> = _backupStatus
+    
+    private val _restoreStatus = MutableStateFlow<String?>(null)
+    val restoreStatus: StateFlow<String?> = _restoreStatus
+    
     init {
         loadSettings()
         loadArchives()
@@ -129,5 +138,45 @@ class SettingsViewModel(
     
     fun clearImportStatus() {
         _importStatus.value = null
+    }
+    
+    fun showImportFilePicker(context: Context) {
+        _showImportFilePicker.value = true
+    }
+    
+    fun hideImportFilePicker() {
+        _showImportFilePicker.value = false
+    }
+    
+    fun createBackup(context: Context) {
+        viewModelScope.launch {
+            _backupStatus.value = "Creating backup..."
+            importExportService.createBackup(context).onSuccess { filePath ->
+                _backupStatus.value = "Backup created: $filePath"
+            }.onFailure { exception ->
+                _backupStatus.value = "Backup failed: ${exception.message}"
+            }
+        }
+    }
+    
+    fun restoreFromBackup(context: Context, filePath: String) {
+        viewModelScope.launch {
+            _restoreStatus.value = "Restoring from backup..."
+            importExportService.restoreFromBackup(context, filePath).onSuccess {
+                _restoreStatus.value = "Restore successful"
+                loadSettings() // Reload settings after restore
+                loadArchives() // Reload archives after restore
+            }.onFailure { exception ->
+                _restoreStatus.value = "Restore failed: ${exception.message}"
+            }
+        }
+    }
+    
+    fun clearBackupStatus() {
+        _backupStatus.value = null
+    }
+    
+    fun clearRestoreStatus() {
+        _restoreStatus.value = null
     }
 } 

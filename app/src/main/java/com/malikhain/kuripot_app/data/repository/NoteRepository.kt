@@ -24,6 +24,14 @@ class NoteRepository(
     
     fun searchNotes(query: String): Flow<List<NoteEntity>> = noteDao.searchNotes(query)
     
+    fun getAllNotesWithPinnedFirst(): Flow<List<NoteEntity>> = noteDao.getAllNotesWithPinnedFirst()
+    
+    fun getNotesByCategoryWithPinnedFirst(categoryId: Int): Flow<List<NoteEntity>> = 
+        noteDao.getNotesByCategoryWithPinnedFirst(categoryId)
+    
+    fun searchNotesWithPinnedFirst(query: String): Flow<List<NoteEntity>> = 
+        noteDao.searchNotesWithPinnedFirst(query)
+    
     suspend fun getNoteById(id: Int): NoteEntity? = noteDao.getNoteById(id)
     
     suspend fun insertNote(note: NoteEntity): Long = noteDao.insertNote(note)
@@ -51,4 +59,6 @@ class NoteRepository(
         archiveDao.insertArchive(archive)
         noteDao.deleteNote(note)
     }
+    
+    suspend fun togglePin(noteId: Int, isPinned: Boolean) = noteDao.togglePin(noteId, isPinned)
 } 

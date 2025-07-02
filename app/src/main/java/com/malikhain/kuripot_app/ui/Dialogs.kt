@@ -2,21 +2,42 @@ package com.malikhain.kuripot_app.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.Label
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Work
+import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.LocalHospital
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.SportsEsports
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Inbox
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import com.malikhain.kuripot_app.data.entities.*
 import com.malikhain.kuripot_app.data.entities.CategoryEntity
 import com.malikhain.kuripot_app.data.entities.ArchiveEntity
+import com.malikhain.kuripot_app.utils.DateUtils
 
 // Add Note Dialog
 @OptIn(ExperimentalMaterial3Api::class)
@@ -462,6 +483,9 @@ fun ChangePasscodeDialog(
     var newPasscode by remember { mutableStateOf("") }
     var confirmPasscode by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
+    var showCurrentPasscode by remember { mutableStateOf(false) }
+    var showNewPasscode by remember { mutableStateOf(false) }
+    var showConfirmPasscode by remember { mutableStateOf(false) }
     
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -478,8 +502,16 @@ fun ChangePasscodeDialog(
                     },
                     label = { Text("Current passcode") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth()
+                    visualTransformation = if (showCurrentPasscode) VisualTransformation.None else PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth(),
+                    trailingIcon = {
+                        IconButton(onClick = { showCurrentPasscode = !showCurrentPasscode }) {
+                            Icon(
+                                imageVector = if (showCurrentPasscode) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = if (showCurrentPasscode) "Hide current passcode" else "Show current passcode"
+                            )
+                        }
+                    }
                 )
                 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -494,8 +526,16 @@ fun ChangePasscodeDialog(
                     },
                     label = { Text("New passcode") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth()
+                    visualTransformation = if (showNewPasscode) VisualTransformation.None else PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth(),
+                    trailingIcon = {
+                        IconButton(onClick = { showNewPasscode = !showNewPasscode }) {
+                            Icon(
+                                imageVector = if (showNewPasscode) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = if (showNewPasscode) "Hide new passcode" else "Show new passcode"
+                            )
+                        }
+                    }
                 )
                 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -510,8 +550,16 @@ fun ChangePasscodeDialog(
                     },
                     label = { Text("Confirm new passcode") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth()
+                    visualTransformation = if (showConfirmPasscode) VisualTransformation.None else PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth(),
+                    trailingIcon = {
+                        IconButton(onClick = { showConfirmPasscode = !showConfirmPasscode }) {
+                            Icon(
+                                imageVector = if (showConfirmPasscode) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = if (showConfirmPasscode) "Hide confirm passcode" else "Show confirm passcode"
+                            )
+                        }
+                    }
                 )
                 
                 error?.let {
@@ -556,46 +604,60 @@ fun ArchivesDialog(
     onRestore: (ArchiveEntity) -> Unit,
     onDelete: (ArchiveEntity) -> Unit
 ) {
+    var searchQuery by remember { mutableStateOf("") }
+    var showDeleteConfirmation by remember { mutableStateOf<ArchiveEntity?>(null) }
+    var showErrorSnackbar by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+    
+    val filteredArchives = archives.filter { archive ->
+        archive.type.contains(searchQuery, ignoreCase = true) ||
+        archive.dataJson.contains(searchQuery, ignoreCase = true)
+    }
+    
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Archives") },
         text = {
-            if (archives.isEmpty()) {
-                Text("No archived items")
-            } else {
-                Column {
-                    archives.forEach { archive ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = "Type: ${archive.type}",
-                                        style = MaterialTheme.typography.titleSmall
-                                    )
-                                    Text(
-                                        text = "Deleted: ${archive.deletedAt}",
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                }
-                                Row {
-                                    IconButton(onClick = { onRestore(archive) }) {
-                                        Icon(Icons.Default.Edit, contentDescription = "Restore")
+            Column {
+                // Search bar
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text("Search archives...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // Archives list
+                if (filteredArchives.isEmpty()) {
+                    EmptyState(
+                        icon = Icons.Default.Inbox,
+                        title = "No Archives Found",
+                        message = if (searchQuery.isNotEmpty()) 
+                            "No archives match your search" 
+                        else 
+                            "No archived items yet"
+                    )
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.height(300.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(filteredArchives) { archive ->
+                            ArchiveItem(
+                                archive = archive,
+                                onRestore = {
+                                    try {
+                                        onRestore(archive)
+                                    } catch (e: Exception) {
+                                        errorMessage = "Failed to restore: ${e.message}"
+                                        showErrorSnackbar = true
                                     }
-                                    IconButton(onClick = { onDelete(archive) }) {
-                                        Icon(Icons.Default.Delete, "Delete")
-                                    }
-                                }
-                            }
+                                },
+                                onDelete = { showDeleteConfirmation = archive }
+                            )
                         }
                     }
                 }
@@ -604,6 +666,347 @@ fun ArchivesDialog(
         confirmButton = {
             TextButton(onClick = onDismiss) {
                 Text("Close")
+            }
+        }
+    )
+    
+    // Delete confirmation dialog
+    showDeleteConfirmation?.let { archive ->
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = null },
+            title = { Text("Permanently Delete") },
+            text = { Text("This action cannot be undone. Are you sure you want to permanently delete this archived item?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        try {
+                            onDelete(archive)
+                            showDeleteConfirmation = null
+                        } catch (e: Exception) {
+                            errorMessage = "Failed to delete: ${e.message}"
+                            showErrorSnackbar = true
+                            showDeleteConfirmation = null
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Delete Permanently")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmation = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+    
+    // Error snackbar
+    if (showErrorSnackbar) {
+        Snackbar(
+            modifier = Modifier.padding(16.dp),
+            action = {
+                TextButton(
+                    onClick = { showErrorSnackbar = false }
+                ) {
+                    Text("DISMISS")
+                }
+            },
+            onDismiss = { showErrorSnackbar = false }
+        ) {
+            Text(errorMessage)
+        }
+    }
+}
+
+@Composable
+fun ArchiveItem(
+    archive: ArchiveEntity,
+    onRestore: () -> Unit,
+    onDelete: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = archive.type,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Archived on ${DateUtils.formatDateForDisplay(archive.deletedAt)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                
+                Row {
+                    IconButton(onClick = onRestore) {
+                        Icon(
+                            Icons.Default.Refresh,
+                            contentDescription = "Restore",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    IconButton(onClick = onDelete) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Delete Permanently",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Month Picker Dialog
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MonthPickerDialog(
+    currentMonth: String,
+    availableMonths: List<String>,
+    onDismiss: () -> Unit,
+    onMonthSelected: (String) -> Unit
+) {
+    var selectedMonth by remember { mutableStateOf(currentMonth) }
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Select Month") },
+        text = {
+            Column {
+                availableMonths.forEach { month ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = selectedMonth == month,
+                            onClick = { selectedMonth = month }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = month,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onMonthSelected(selectedMonth) }
+            ) {
+                Text("Select")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+// Import File Picker Dialog
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ImportFilePickerDialog(
+    onDismiss: () -> Unit,
+    onFileSelected: (String) -> Unit
+) {
+    var selectedFilePath by remember { mutableStateOf("") }
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Import Data") },
+        text = {
+            Column {
+                Text(
+                    text = "Select a JSON file to import your data:",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = selectedFilePath,
+                    onValueChange = { selectedFilePath = it },
+                    label = { Text("File Path") },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("Enter file path or browse...") }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Note: Importing will merge data with existing records. Duplicate entries may be created.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { 
+                    if (selectedFilePath.isNotEmpty()) {
+                        onFileSelected(selectedFilePath)
+                    }
+                },
+                enabled = selectedFilePath.isNotEmpty()
+            ) {
+                Text("Import")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+// Enhanced Category Dialog with Color and Icon Selection
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditCategoryDialog(
+    category: CategoryEntity?,
+    onDismiss: () -> Unit,
+    onSave: (String, String, String) -> Unit
+) {
+    var title by remember { mutableStateOf(category?.title ?: "") }
+    var selectedColor by remember { mutableStateOf(category?.color ?: "#FF6200EE") }
+    var selectedIcon by remember { mutableStateOf(category?.icon ?: "label") }
+    
+    val availableColors = listOf(
+        "#FF6200EE", "#FF03DAC5", "#FF018786", "#FFB00020",
+        "#FF3700B3", "#FF03DAC5", "#FF018786", "#FFB00020",
+        "#FF6200EE", "#FF03DAC5", "#FF018786", "#FFB00020"
+    )
+    
+    val availableIcons = listOf(
+        "label" to Icons.Default.Label,
+        "home" to Icons.Default.Home,
+        "work" to Icons.Default.Work,
+        "school" to Icons.Default.School,
+        "favorite" to Icons.Default.Favorite,
+        "shopping" to Icons.Default.ShoppingCart,
+        "restaurant" to Icons.Default.Restaurant,
+        "health" to Icons.Default.LocalHospital,
+        "car" to Icons.Default.DirectionsCar,
+        "games" to Icons.Default.SportsEsports,
+        "music" to Icons.Default.MusicNote
+    )
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (category == null) "Add Category" else "Edit Category") },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Category Name") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Text(
+                    text = "Color",
+                    style = MaterialTheme.typography.titleSmall
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(availableColors) { color ->
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(
+                                    Color(android.graphics.Color.parseColor(color)),
+                                    shape = androidx.compose.foundation.shape.CircleShape
+                                )
+                                .border(
+                                    width = if (selectedColor == color) 3.dp else 1.dp,
+                                    color = if (selectedColor == color) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                                    shape = androidx.compose.foundation.shape.CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (selectedColor == color) {
+                                Icon(
+                                    Icons.Default.Favorite,
+                                    contentDescription = "Selected",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Text(
+                    text = "Icon",
+                    style = MaterialTheme.typography.titleSmall
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(availableIcons) { (iconName, icon) ->
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(
+                                    if (selectedIcon == iconName) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+                                    shape = androidx.compose.foundation.shape.CircleShape
+                                )
+                                .border(
+                                    width = if (selectedIcon == iconName) 2.dp else 1.dp,
+                                    color = if (selectedIcon == iconName) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                                    shape = androidx.compose.foundation.shape.CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                icon,
+                                contentDescription = iconName,
+                                tint = if (selectedIcon == iconName) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onSave(title, selectedColor, selectedIcon) },
+                enabled = title.isNotEmpty()
+            ) {
+                Text(if (category == null) "Add" else "Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
             }
         }
     )
