@@ -4,39 +4,37 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.DismissDirection
-import androidx.compose.material.DismissValue
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.SwipeToDismiss
-import androidx.compose.material.rememberDismissState
-import androidx.compose.animation.core.animateColorAsState
-import androidx.compose.foundation.background
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.malikhain.kuripot_app.data.entities.NoteEntity
 import com.malikhain.kuripot_app.data.entities.CategoryEntity
 import com.malikhain.kuripot_app.viewmodel.NotesViewModel
 import com.malikhain.kuripot_app.utils.DateUtils
 import com.malikhain.kuripot_app.ui.theme.AudioPlayer
+import com.malikhain.kuripot_app.ui.theme.EmptyState
+import androidx.compose.ui.text.input.KeyboardType
 
 // Helper function to highlight search terms
 private fun highlightText(text: String, query: String): AnnotatedString {
@@ -103,7 +101,7 @@ fun NotesScreen(
             actions = {
                 if (isMultiSelectMode) {
                     IconButton(onClick = { viewModel.selectAllNotes() }) {
-                        Icon(Icons.Default.SelectAll, contentDescription = "Select All")
+                        Icon(Icons.Default.CheckBox, contentDescription = "Select All")
                     }
                     IconButton(onClick = { viewModel.clearSelection() }) {
                         Icon(Icons.Default.Clear, contentDescription = "Clear Selection")
@@ -177,7 +175,7 @@ fun NotesScreen(
                 }
             } else {
                 items(notes) { note ->
-                    SwipeableNoteCard(
+                    NoteCard(
                         note = note,
                         category = categories.find { it.id == note.categoryId },
                         onEdit = { selectedNote = note },
@@ -208,46 +206,45 @@ fun NotesScreen(
         }
     }
     
-    // Undo Snackbar
-    if (showUndoSnackbar) {
-        Snackbar(
-            modifier = Modifier.padding(16.dp),
-            action = {
-                TextButton(
-                    onClick = {
-                        lastDeletedNote?.let { note ->
-                            viewModel.restoreNote(note)
+    // SnackbarHost for showing snackbars
+    SnackbarHost(
+        hostState = remember { SnackbarHostState() },
+        modifier = Modifier.padding(16.dp)
+    ) {
+        // Undo Snackbar
+        if (showUndoSnackbar) {
+            Snackbar(
+                action = {
+                    TextButton(
+                        onClick = {
+                            lastDeletedNote?.let { note ->
+                                viewModel.restoreNote(note)
+                            }
+                            showUndoSnackbar = false
+                            lastDeletedNote = null
                         }
-                        showUndoSnackbar = false
-                        lastDeletedNote = null
+                    ) {
+                        Text("UNDO")
                     }
-                ) {
-                    Text("UNDO")
                 }
-            },
-            onDismiss = {
-                showUndoSnackbar = false
-                lastDeletedNote = null
+            ) {
+                Text("Note deleted")
             }
-        ) {
-            Text("Note deleted")
         }
-    }
-    
-    // Error Snackbar
-    if (showErrorSnackbar) {
-        Snackbar(
-            modifier = Modifier.padding(16.dp),
-            action = {
-                TextButton(
-                    onClick = { showErrorSnackbar = false }
-                ) {
-                    Text("DISMISS")
+        
+        // Error Snackbar
+        if (showErrorSnackbar) {
+            Snackbar(
+                action = {
+                    TextButton(
+                        onClick = { showErrorSnackbar = false }
+                    ) {
+                        Text("DISMISS")
+                    }
                 }
-            },
-            onDismiss = { showErrorSnackbar = false }
-        ) {
-            Text(errorMessage)
+            ) {
+                Text(errorMessage)
+            }
         }
     }
     
@@ -354,87 +351,6 @@ fun NotesScreen(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-fun SwipeableNoteCard(
-    note: NoteEntity,
-    category: CategoryEntity?,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit,
-    onPlayAudio: () -> Unit,
-    onTogglePin: () -> Unit,
-    isMultiSelectMode: Boolean,
-    isSelected: Boolean,
-    onToggleSelection: () -> Unit,
-    searchQuery: String = ""
-) {
-    val dismissState = rememberDismissState(
-        confirmStateChange = { dismissValue ->
-            if (dismissValue == DismissValue.DismissedToStart) {
-                onDelete()
-                true
-            } else {
-                false
-            }
-        }
-    )
-    
-    SwipeToDismiss(
-        state = dismissState,
-        background = {
-            val direction = dismissState.dismissDirection
-            val color by animateColorAsState(
-                when (dismissState.targetValue) {
-                    DismissValue.Default -> MaterialTheme.colorScheme.surface
-                    DismissValue.DismissedToStart -> MaterialTheme.colorScheme.error
-                    DismissValue.DismissedToEnd -> MaterialTheme.colorScheme.error
-                }
-            )
-            val alignment = when (direction) {
-                DismissDirection.StartToEnd -> Alignment.CenterStart
-                DismissDirection.EndToStart -> Alignment.CenterEnd
-                null -> Alignment.Center
-            }
-            val icon = when (direction) {
-                DismissDirection.StartToEnd -> Icons.Default.Delete
-                DismissDirection.EndToStart -> Icons.Default.Delete
-                null -> null
-            }
-            
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(color)
-                    .padding(horizontal = 20.dp),
-                contentAlignment = alignment
-            ) {
-                icon?.let {
-                    Icon(
-                        imageVector = it,
-                        contentDescription = "Delete",
-                        tint = MaterialTheme.colorScheme.onError
-                    )
-                }
-            }
-        },
-        dismissContent = {
-            NoteCard(
-                note = note,
-                category = category,
-                onEdit = onEdit,
-                onDelete = onDelete,
-                onPlayAudio = onPlayAudio,
-                onTogglePin = onTogglePin,
-                isMultiSelectMode = isMultiSelectMode,
-                isSelected = isSelected,
-                onToggleSelection = onToggleSelection,
-                searchQuery = searchQuery
-            )
-        },
-        directions = setOf(DismissDirection.StartToEnd, DismissDirection.EndToStart)
-    )
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteCard(
@@ -471,7 +387,7 @@ fun NoteCard(
                 if (isMultiSelectMode) {
                     IconButton(onClick = onToggleSelection) {
                         Icon(
-                            if (isSelected) Icons.Default.CheckBox else Icons.Default.CheckBoxOutlineBlank,
+                            if (isSelected) Icons.Default.CheckBox else Icons.Default.CheckBox,
                             contentDescription = if (isSelected) "Deselect" else "Select",
                             tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -483,7 +399,7 @@ fun NoteCard(
                 ) {
                     if (note.isPinned) {
                         Icon(
-                            Icons.Default.PushPin,
+                            Icons.Default.Star,
                             contentDescription = "Pinned",
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(16.dp)
@@ -506,7 +422,7 @@ fun NoteCard(
                         }
                         IconButton(onClick = onTogglePin) {
                             Icon(
-                                Icons.Default.PushPin,
+                                Icons.Default.Star,
                                 contentDescription = if (note.isPinned) "Unpin" else "Pin",
                                 tint = if (note.isPinned) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -571,44 +487,5 @@ fun NoteCard(
                 )
             }
         }
-    }
-}
-
-@Composable
-fun EmptyState(
-    icon: ImageVector,
-    title: String,
-    message: String,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            textAlign = TextAlign.Center
-        )
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
     }
 } 

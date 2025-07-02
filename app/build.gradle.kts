@@ -3,8 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
-    id("com.google.devtools.ksp") version "2.0.21-1.0.28"
 
+    id("com.google.devtools.ksp") version "2.0.21-1.0.28"
 }
 
 android {
@@ -70,6 +70,9 @@ dependencies {
     // Media3 for audio playback
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)
+    
+    // Material Icons Extended
+    implementation("androidx.compose.material:material-icons-extended:1.6.0")
     
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

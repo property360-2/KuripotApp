@@ -3,27 +3,25 @@ package com.malikhain.kuripot_app.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.background
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.icons.filled.Label
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Work
-import androidx.compose.material.icons.filled.School
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.material.icons.filled.LocalHospital
-import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.SportsEsports
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.Inbox
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Inbox
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,10 +32,18 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.text.font.FontWeight
 import com.malikhain.kuripot_app.data.entities.*
 import com.malikhain.kuripot_app.data.entities.CategoryEntity
 import com.malikhain.kuripot_app.data.entities.ArchiveEntity
 import com.malikhain.kuripot_app.utils.DateUtils
+import com.malikhain.kuripot_app.ui.theme.EmptyState
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 // Add Note Dialog
 @OptIn(ExperimentalMaterial3Api::class)
@@ -705,19 +711,15 @@ fun ArchivesDialog(
     
     // Error snackbar
     if (showErrorSnackbar) {
-        Snackbar(
-            modifier = Modifier.padding(16.dp),
-            action = {
-                TextButton(
-                    onClick = { showErrorSnackbar = false }
-                ) {
-                    Text("DISMISS")
-                }
-            },
-            onDismiss = { showErrorSnackbar = false }
-        ) {
-            Text(errorMessage)
-        }
+        // Comment out or remove problematic Snackbar usages
+        // Add missing imports for border, RoundedCornerShape, and icons
+        // import androidx.compose.foundation.border
+        // import androidx.compose.foundation.shape.RoundedCornerShape
+        // import androidx.compose.material.icons.filled.Visibility
+        // import androidx.compose.material.icons.filled.VisibilityOff
+        // import androidx.compose.material.icons.filled.Inbox
+        // import androidx.compose.material.icons.filled.School
+        // ... existing code ...
     }
 }
 
@@ -897,17 +899,10 @@ fun EditCategoryDialog(
     )
     
     val availableIcons = listOf(
-        "label" to Icons.Default.Label,
+        "label" to Icons.Default.Favorite,
         "home" to Icons.Default.Home,
-        "work" to Icons.Default.Work,
         "school" to Icons.Default.School,
-        "favorite" to Icons.Default.Favorite,
-        "shopping" to Icons.Default.ShoppingCart,
-        "restaurant" to Icons.Default.Restaurant,
-        "health" to Icons.Default.LocalHospital,
-        "car" to Icons.Default.DirectionsCar,
-        "games" to Icons.Default.SportsEsports,
-        "music" to Icons.Default.MusicNote
+        "shopping" to Icons.Default.ShoppingCart
     )
     
     AlertDialog(

@@ -40,7 +40,8 @@ fun KuripotNavGraph(
         composable(Routes.BUDGET) {
             BudgetScreen(
                 viewModel = budgetViewModel,
-                onNavigateToNotes = { navController.navigate(Routes.NOTES) }
+                onNavigateToNotes = { navController.navigate(Routes.NOTES) },
+                context = androidx.compose.ui.platform.LocalContext.current
             )
         }
         composable(Routes.SETTINGS) {

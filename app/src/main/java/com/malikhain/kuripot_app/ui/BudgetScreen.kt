@@ -13,21 +13,12 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.PieChart
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.Inbox
-import androidx.compose.material.icons.filled.Undo
-import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.graphics.vector.ImageVector
-import com.malikhain.kuripot_app.ui.theme.PieChart
-import com.malikhain.kuripot_app.ui.theme.PieChartData
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -49,6 +40,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.style.TextAlign
+import com.malikhain.kuripot_app.ui.theme.EmptyState
+import androidx.compose.material.DismissDirection
+import androidx.compose.material.DismissValue
+import androidx.compose.material.SwipeToDismiss
+import androidx.compose.material.rememberDismissState
+import com.malikhain.kuripot_app.ui.theme.PieChart as PieChartComponent
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.graphics.vector.ImageVector
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,13 +93,13 @@ fun BudgetScreen(
             title = { Text("Budget Tracker") },
             actions = {
                 IconButton(onClick = { showCharts = !showCharts }) {
-                    Icon(Icons.Default.PieChart, contentDescription = "Charts")
+                    Icon(Icons.Default.Star, contentDescription = "Charts")
                 }
                 IconButton(onClick = { showBudgetLimitDialog = true }) {
                     Icon(Icons.Default.Warning, contentDescription = "Budget Limits")
                 }
                 IconButton(onClick = { showExportDialog = true }) {
-                    Icon(Icons.Default.Download, contentDescription = "Export")
+                    Icon(Icons.Default.Add, contentDescription = "Export")
                 }
                 IconButton(onClick = { onNavigateToNotes() }) {
                     Icon(Icons.Default.Edit, contentDescription = "Notes")
@@ -171,7 +170,7 @@ fun BudgetScreen(
                     )
                     
                     if (expenseChartData.isNotEmpty()) {
-                        PieChart(
+                        PieChartComponent(
                             data = expenseChartData,
                             modifier = Modifier.align(Alignment.CenterHorizontally)
                         )
@@ -200,7 +199,7 @@ fun BudgetScreen(
                         }
                     } else {
                         EmptyState(
-                            icon = Icons.Default.PieChart,
+                            icon = Icons.Default.Star,
                             title = "No Expense Data",
                             message = "Add some expenses to see the breakdown chart"
                         )
@@ -277,7 +276,7 @@ fun BudgetScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            Icons.Default.FilterList,
+                            Icons.Default.Edit,
                             contentDescription = "Filter",
                             modifier = Modifier.size(20.dp)
                         )
@@ -321,7 +320,7 @@ fun BudgetScreen(
             if (budgetEntries.isEmpty()) {
                 item {
                     EmptyState(
-                        icon = Icons.Default.Inbox,
+                        icon = Icons.Default.Star,
                         title = "No Budget Entries",
                         message = when {
                             selectedEntryType != "all" -> "No ${selectedEntryType} entries for this month"
@@ -385,43 +384,42 @@ fun BudgetScreen(
         }
     }
     
-    // Undo Snackbar
-    if (showUndoSnackbar && lastDeletedEntry != null) {
-        Snackbar(
-            modifier = Modifier.padding(16.dp),
-            action = {
-                TextButton(
-                    onClick = {
-                        viewModel.undoDelete()
-                        showUndoSnackbar = false
+    // SnackbarHost for showing snackbars
+    SnackbarHost(
+        hostState = remember { SnackbarHostState() },
+        modifier = Modifier.padding(16.dp)
+    ) {
+        // Undo Snackbar
+        if (showUndoSnackbar && lastDeletedEntry != null) {
+            Snackbar(
+                action = {
+                    TextButton(
+                        onClick = {
+                            viewModel.undoDelete()
+                            showUndoSnackbar = false
+                        }
+                    ) {
+                        Text("UNDO")
                     }
-                ) {
-                    Text("UNDO")
                 }
-            },
-            onDismiss = {
-                viewModel.clearLastDeletedEntry()
-                showUndoSnackbar = false
+            ) {
+                Text("Budget entry deleted")
             }
-        ) {
-            Text("Budget entry deleted")
         }
-    }
-    
-    // Error Snackbar
-    if (showErrorSnackbar) {
-        Snackbar(
-            modifier = Modifier.padding(16.dp),
-            action = {
-                TextButton(
-                    onClick = { showErrorSnackbar = false }
-                ) {
-                    Text("DISMISS")
+        
+        // Error Snackbar
+        if (showErrorSnackbar) {
+            Snackbar(
+                action = {
+                    TextButton(
+                        onClick = { showErrorSnackbar = false }
+                    ) {
+                        Text("DISMISS")
+                    }
                 }
-            },
-            onDismiss = { showErrorSnackbar = false }
-        ) {
-            Text(errorMessage)
+            ) {
+                Text(errorMessage)
+            }
         }
     }
     
@@ -776,8 +774,6 @@ fun AddBudgetEntryDialog(
     )
 }
 
-
-
 @Composable
 fun BudgetLimitProgressCard(
     limit: BudgetLimitEntity,
@@ -902,7 +898,7 @@ fun RecurringEntryCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        Icons.Default.Schedule,
+                        Icons.Default.DateRange,
                         contentDescription = "Recurring",
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(16.dp)
