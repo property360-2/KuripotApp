@@ -59,6 +59,7 @@ fun AddNoteDialog(
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
     var selectedCategoryId by remember { mutableStateOf<Int?>(null) }
+    var expanded by remember { mutableStateOf(false) }
     
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -84,18 +85,35 @@ fun AddNoteDialog(
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 
-                // Category dropdown
+                // Category dropdown (now functional)
                 ExposedDropdownMenuBox(
-                    expanded = false,
-                    onExpandedChange = { }
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded }
                 ) {
                     OutlinedTextField(
                         value = categories.find { it.id == selectedCategoryId }?.title ?: "",
                         onValueChange = { },
                         readOnly = true,
                         label = { Text("Category") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(),
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) }
                     )
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        categories.forEach { category ->
+                            DropdownMenuItem(
+                                text = { Text(category.title) },
+                                onClick = {
+                                    selectedCategoryId = category.id
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
                 }
                 
                 Spacer(modifier = Modifier.height(8.dp))

@@ -1,5 +1,6 @@
 package com.malikhain.kuripot_app.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.malikhain.kuripot_app.data.entities.NoteEntity
@@ -67,16 +68,27 @@ class NotesViewModel(
     
     fun addNote(title: String, content: String, categoryId: Int, isBudget: Boolean = false) {
         viewModelScope.launch {
-            val note = NoteEntity(
-                title = title,
-                content = content,
-                categoryId = categoryId,
-                createdAt = DateUtils.getCurrentDate(),
-                voicePath = _currentRecordingPath.value,
-                isBudget = isBudget
-            )
-            noteRepository.insertNote(note)
-            _currentRecordingPath.value = null
+            try {
+                Log.d("NotesViewModel", "addNote called with title=$title, content=$content, categoryId=$categoryId, isBudget=$isBudget")
+                val note = NoteEntity(
+                    title = title,
+                    content = content,
+                    categoryId = categoryId,
+                    createdAt = DateUtils.getCurrentDate(),
+                    voicePath = _currentRecordingPath.value,
+                    isBudget = isBudget
+                )
+                Log.d("NotesViewModel", "Inserting note: $note")
+                val result = noteRepository.insertNote(note)
+                Log.d("NotesViewModel", "Insert result: $result")
+                _currentRecordingPath.value = null
+                // Log notes list after insertion
+                val notesList = notes.value
+                Log.d("NotesViewModel", "Notes after insert: $notesList")
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e("NotesViewModel", "Error inserting note: ${e.message}")
+            }
         }
     }
     

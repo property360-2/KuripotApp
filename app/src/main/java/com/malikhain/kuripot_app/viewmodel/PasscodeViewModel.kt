@@ -81,7 +81,7 @@ class PasscodeViewModel(private val settingDao: SettingDao) : ViewModel() {
 
     fun resetPasscode() {
         viewModelScope.launch {
-            settingDao.deleteSetting("passcode")
+            settingDao.deleteSettingByKey("passcode")
             _isPasscodeSet.value = false
             _showForgotPasscodeDialog.value = false
             _error.value = null

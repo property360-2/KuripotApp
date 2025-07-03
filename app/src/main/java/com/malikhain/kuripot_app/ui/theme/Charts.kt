@@ -22,15 +22,13 @@ fun PieChart(
     data: List<PieChartData>,
     modifier: Modifier = Modifier
 ) {
-    val total = data.sumOf { it.value.toDouble() }
-    
     Canvas(modifier = modifier.size(200.dp)) {
         val center = Offset(size.width / 2, size.height / 2)
         val radius = min(size.width, size.height) / 2 * 0.8f
         var startAngle = 0f
         
         data.forEach { item ->
-            val sweepAngle = ((item.value / total) * 360).toFloat()
+            val sweepAngle = ((item.value / data.sumOf { it.value.toDouble() }) * 360).toFloat()
             
             drawArc(
                 color = item.color,
@@ -51,8 +49,8 @@ fun BarChart(
     data: List<BarChartData>,
     modifier: Modifier = Modifier
 ) {
-    val maxValue = data.maxOfOrNull { it.value } ?: 0f
-    
+    val surfaceVariant = MaterialTheme.colorScheme.surfaceVariant
+    val shapeSmall = MaterialTheme.shapes.small
     Column(modifier = modifier) {
         data.forEach { item ->
             Row(
@@ -74,17 +72,17 @@ fun BarChart(
                         .weight(1f)
                         .height(24.dp)
                         .background(
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            shape = MaterialTheme.shapes.small
+                            color = surfaceVariant,
+                            shape = shapeSmall
                         )
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxHeight()
-                            .fillMaxWidth(if (maxValue > 0) item.value / maxValue else 0f)
+                            .fillMaxWidth(if (data.maxOfOrNull { it.value } ?: 0f > 0) item.value / (data.maxOfOrNull { it.value } ?: 1f) else 0f)
                             .background(
                                 color = item.color,
-                                shape = MaterialTheme.shapes.small
+                                shape = shapeSmall
                             )
                     )
                 }
@@ -106,10 +104,8 @@ fun LineChart(
     data: List<LineChartData>,
     modifier: Modifier = Modifier
 ) {
-    val maxValue = data.maxOfOrNull { it.value } ?: 0f
-    val minValue = data.minOfOrNull { it.value } ?: 0f
-    val valueRange = maxValue - minValue
-    
+    val outline = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+    val primary = MaterialTheme.colorScheme.primary
     Canvas(modifier = modifier.height(200.dp)) {
         if (data.size < 2) return@Canvas
         
@@ -120,12 +116,16 @@ fun LineChart(
         val chartWidth = width - 2 * padding
         val chartHeight = height - 2 * padding
         
+        val maxValue = data.maxOfOrNull { it.value } ?: 0f
+        val minValue = data.minOfOrNull { it.value } ?: 0f
+        val valueRange = maxValue - minValue
+        
         // Draw grid lines
         val gridLines = 5
         for (i in 0..gridLines) {
             val y = padding + (chartHeight / gridLines) * i
             drawLine(
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                color = outline,
                 start = Offset(padding, y),
                 end = Offset(width - padding, y),
                 strokeWidth = 1f
@@ -146,7 +146,7 @@ fun LineChart(
         // Draw connecting lines
         for (i in 0 until points.size - 1) {
             drawLine(
-                color = MaterialTheme.colorScheme.primary,
+                color = primary,
                 start = points[i],
                 end = points[i + 1],
                 strokeWidth = 3f
@@ -156,7 +156,7 @@ fun LineChart(
         // Draw data points
         points.forEach { point ->
             drawCircle(
-                color = MaterialTheme.colorScheme.primary,
+                color = primary,
                 radius = 6f,
                 center = point
             )

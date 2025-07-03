@@ -35,35 +35,29 @@ import com.malikhain.kuripot_app.utils.DateUtils
 import com.malikhain.kuripot_app.ui.theme.AudioPlayer
 import com.malikhain.kuripot_app.ui.theme.EmptyState
 import androidx.compose.ui.text.input.KeyboardType
+import android.util.Log
 
 // Helper function to highlight search terms
 private fun highlightText(text: String, query: String): AnnotatedString {
     if (query.isEmpty()) {
         return AnnotatedString(text)
     }
-    
     return buildAnnotatedString {
         val lowerText = text.lowercase()
         val lowerQuery = query.lowercase()
         var startIndex = 0
-        
         while (true) {
             val index = lowerText.indexOf(lowerQuery, startIndex)
             if (index == -1) {
                 append(text.substring(startIndex))
                 break
             }
-            
-            // Add text before the match
             append(text.substring(startIndex, index))
-            
-            // Add highlighted match
-            withStyle(androidx.compose.ui.text.SpanStyle(
-                backgroundColor = androidx.compose.ui.graphics.Color.Yellow.copy(alpha = 0.5f)
+            withStyle(style = androidx.compose.ui.text.SpanStyle(
+                background = androidx.compose.ui.graphics.Color.Yellow.copy(alpha = 0.5f)
             )) {
                 append(text.substring(index, index + query.length))
             }
-            
             startIndex = index + query.length
         }
     }
@@ -94,7 +88,18 @@ fun NotesScreen(
     var showErrorSnackbar by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     
+    // Log notes list on recomposition
+    LaunchedEffect(notes) {
+        Log.d("NotesScreen", "Composed notes: $notes")
+    }
+    
     Column(modifier = Modifier.fillMaxSize()) {
+        // Debug: Show raw notes list
+        Text(
+            text = "DEBUG: Notes in ViewModel: " + notes.joinToString { "[id=${it.id}, title=${it.title}, catId=${it.categoryId}]" },
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(8.dp)
+        )
         // Top Bar
         TopAppBar(
             title = { Text("Notes") },
@@ -172,25 +177,40 @@ fun NotesScreen(
                             else -> "Create your first note to get started"
                         }
                     )
+                    // Fallback: Show raw notes list
+                    Text(
+                        text = "DEBUG (LazyColumn): " + notes.joinToString { "[id=${it.id}, title=${it.title}, catId=${it.categoryId}]" },
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(8.dp)
+                    )
                 }
             } else {
                 items(notes) { note ->
-                    NoteCard(
-                        note = note,
-                        category = categories.find { it.id == note.categoryId },
-                        onEdit = { selectedNote = note },
-                        onDelete = { 
-                            lastDeletedNote = note
-                            viewModel.deleteNote(note)
-                            showUndoSnackbar = true
-                        },
-                        onPlayAudio = { note.voicePath?.let { viewModel.playAudio(it) } },
-                        onTogglePin = { viewModel.togglePin(note) },
-                        isMultiSelectMode = isMultiSelectMode,
-                        isSelected = selectedNotes.contains(note.id),
-                        onToggleSelection = { viewModel.toggleNoteSelection(note.id) },
-                        searchQuery = searchQuery
+                    // Fallback: Show note info as text for debugging
+                    Text(
+                        text = "DEBUG (Item): id=${note.id}, title=${note.title}, catId=${note.categoryId}",
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(4.dp)
                     )
+                    // NoteCard(
+                    //     note = note,
+                    //     category = categories.find { it.id == note.categoryId },
+                    //     onEdit = { selectedNote = note },
+                    //     onDelete = { 
+                    //         lastDeletedNote = note
+                    //         viewModel.deleteNote(note)
+                    //         showUndoSnackbar = true
+                    //     },
+                    //     onPlayAudio = { note.voicePath?.let { viewModel.playAudio(it) } },
+                    //     onTogglePin = { viewModel.togglePin(note) },
+                    //     isMultiSelectMode = isMultiSelectMode,
+                    //     isSelected = selectedNotes.contains(note.id),
+                    //     onToggleSelection = { viewModel.toggleNoteSelection(note.id) },
+                    //     searchQuery = searchQuery,
+                    //     currentPlayingAudio = currentPlayingAudio,
+                    //     isAudioPaused = isAudioPaused,
+                    //     viewModel = viewModel
+                    // )
                 }
             }
         }
@@ -363,8 +383,12 @@ fun NoteCard(
     isMultiSelectMode: Boolean,
     isSelected: Boolean,
     onToggleSelection: () -> Unit,
-    searchQuery: String = ""
+    searchQuery: String = "",
+    currentPlayingAudio: String? = null,
+    isAudioPaused: Boolean = false,
+    viewModel: NotesViewModel? = null
 ) {
+    Log.d("NoteCard", "Rendering NoteCard for note id=${note.id}, title=${note.title}, catId=${note.categoryId}")
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
@@ -379,110 +403,21 @@ fun NoteCard(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (isMultiSelectMode) {
-                    IconButton(onClick = onToggleSelection) {
-                        Icon(
-                            if (isSelected) Icons.Default.CheckBox else Icons.Default.CheckBox,
-                            contentDescription = if (isSelected) "Deselect" else "Select",
-                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    if (note.isPinned) {
-                        Icon(
-                            Icons.Default.Star,
-                            contentDescription = "Pinned",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                    }
-                    Text(
-                        text = highlightText(note.title, searchQuery),
-                        style = MaterialTheme.typography.titleMedium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                Row {
-                    if (!isMultiSelectMode) {
-                        if (note.voicePath != null) {
-                            IconButton(onClick = onPlayAudio) {
-                                Icon(Icons.Default.PlayArrow, contentDescription = "Play Audio")
-                            }
-                        }
-                        IconButton(onClick = onTogglePin) {
-                            Icon(
-                                Icons.Default.Star,
-                                contentDescription = if (note.isPinned) "Unpin" else "Pin",
-                                tint = if (note.isPinned) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        IconButton(onClick = onEdit) {
-                            Icon(Icons.Default.Edit, contentDescription = "Edit")
-                        }
-                        IconButton(onClick = onDelete) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete")
-                        }
-                    }
-                }
-            }
+            Log.d("NoteCard", "Showing title: ${note.title}")
             Text(
-                text = highlightText(note.content, searchQuery),
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis
+                text = note.title,
+                style = MaterialTheme.typography.titleMedium
             )
-            
-            // Audio player for voice notes
-            if (note.voicePath != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                val isThisAudioPlaying = currentPlayingAudio == note.voicePath
-                if (isThisAudioPlaying) {
-                    AudioPlayer(
-                        isPlaying = isThisAudioPlaying,
-                        isPaused = isAudioPaused,
-                        currentPosition = 0L, // TODO: Get from AudioService
-                        duration = 0L, // TODO: Get from AudioService
-                        onPlay = { viewModel.resumeAudio() },
-                        onPause = { viewModel.pauseAudio() },
-                        onStop = { viewModel.stopAudio() },
-                        onSeek = { position -> viewModel.seekAudio(position) }
-                    )
-                } else {
-                    Button(
-                        onClick = { viewModel.playAudio(note.voicePath) },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(Icons.Default.PlayArrow, contentDescription = "Play Voice Note")
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Play Voice Note")
-                    }
-                }
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                category?.let {
-                    FilterChip(
-                        selected = false,
-                        onClick = { },
-                        label = { Text(it.title) }
-                    )
-                }
+            Log.d("NoteCard", "Showing category")
+            if (category != null) {
                 Text(
-                    text = DateUtils.formatDateForDisplay(note.createdAt),
+                    text = "Category: ${category.title}",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            } else {
+                Text(
+                    text = "[No Category] (catId=${note.categoryId})",
+                    color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall
                 )
             }

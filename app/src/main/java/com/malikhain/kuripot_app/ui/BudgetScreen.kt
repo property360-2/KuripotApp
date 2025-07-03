@@ -48,6 +48,8 @@ import androidx.compose.material.rememberDismissState
 import com.malikhain.kuripot_app.ui.theme.PieChart as PieChartComponent
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.graphics.vector.ImageVector
+import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,6 +83,8 @@ fun BudgetScreen(
     var showUndoSnackbar by remember { mutableStateOf(false) }
     var showErrorSnackbar by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
+    
+    val coroutineScope = rememberCoroutineScope()
     
     // Load subcategories when month changes
     LaunchedEffect(selectedMonth) {
@@ -478,18 +482,20 @@ fun BudgetScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        val result = viewModel.exportToCSV(context)
-                        result.fold(
-                            onSuccess = { filePath ->
-                                showExportDialog = false
-                                // Show success message
-                            },
-                            onFailure = { exception ->
-                                showExportDialog = false
-                                errorMessage = "Export failed: ${exception.message}"
-                                showErrorSnackbar = true
-                            }
-                        )
+                        coroutineScope.launch {
+                            val result = viewModel.exportToCSV(context)
+                            result.fold(
+                                onSuccess = { filePath ->
+                                    showExportDialog = false
+                                    // Show success message
+                                },
+                                onFailure = { exception ->
+                                    showExportDialog = false
+                                    errorMessage = "Export failed: ${exception.message}"
+                                    showErrorSnackbar = true
+                                }
+                            )
+                        }
                     }
                 ) {
                     Text("Export")

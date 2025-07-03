@@ -16,7 +16,7 @@ import com.malikhain.kuripot_app.data.entities.*
         ArchiveEntity::class,
         SettingEntity::class
     ],
-    version = 1,
+    version = 3,
     exportSchema = false
 )
 abstract class KuripotDatabase : RoomDatabase() {

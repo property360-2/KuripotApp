@@ -16,6 +16,7 @@ import java.util.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import com.malikhain.kuripot_app.data.entities.BudgetLimitEntity
+import kotlinx.coroutines.flow.first
 
 class BudgetViewModel(
     private val budgetRepository: BudgetRepository,
@@ -100,7 +101,8 @@ class BudgetViewModel(
     
     fun loadAvailableSubcategories() {
         viewModelScope.launch {
-            val entries = budgetRepository.getBudgetEntriesByMonth(_selectedMonth.value).first()
+            val month: String = _selectedMonth.value
+            val entries = budgetRepository.getBudgetEntriesByMonth(month).first()
             val subcategories = entries
                 .mapNotNull { it.subCategory }
                 .distinct()
@@ -207,7 +209,7 @@ class BudgetViewModel(
     
     private fun loadChartData() {
         viewModelScope.launch {
-            val month = _selectedMonth.value
+            val month: String = _selectedMonth.value
             val entries = budgetRepository.getBudgetEntriesByMonth(month).first()
             
             // Load expense chart data by subcategory
@@ -237,22 +239,19 @@ class BudgetViewModel(
         }
     }
     
-    fun exportToCSV(context: Context): Result<String> {
+    suspend fun exportToCSV(context: Context): Result<String> {
         return try {
-            val month = _selectedMonth.value
+            val month: String = _selectedMonth.value
             val entries = budgetRepository.getBudgetEntriesByMonth(month).first()
-            
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
             val fileName = "budget_export_${month}_$timestamp.csv"
             val file = File(context.getExternalFilesDir(null), fileName)
-            
             val csvContent = buildString {
                 appendLine("Date,Description,Type,Subcategory,Amount")
                 entries.forEach { entry ->
                     appendLine("${entry.date},${entry.description},${entry.entryType},${entry.subCategory ?: ""},${entry.amount}")
                 }
             }
-            
             file.writeText(csvContent)
             Result.success(file.absolutePath)
         } catch (e: Exception) {
@@ -262,7 +261,8 @@ class BudgetViewModel(
     
     fun loadBudgetLimits() {
         viewModelScope.launch {
-            budgetRepository.getBudgetLimitsByMonth(_selectedMonth.value).collect {
+            val month: String = _selectedMonth.value
+            budgetRepository.getBudgetLimitsByMonth(month).collect {
                 _budgetLimits.value = it
             }
             budgetRepository.getOverBudgetLimits().collect {
@@ -294,10 +294,9 @@ class BudgetViewModel(
     
     fun updateSpentForLimits() {
         viewModelScope.launch {
-            val month = _selectedMonth.value
-            val limits = budgetRepository.getBudgetLimitsByMonth(month).first()
+            val limits = budgetRepository.getBudgetLimitsByMonth(_selectedMonth.value as String).first()
             limits.forEach { limit ->
-                val spent = budgetEntries.value.filter { it.subCategory == null && it.entryType == "expense" && it.date.startsWith(month) }.sumOf { it.amount }
+                val spent = budgetEntries.value.filter { it.subCategory == null && it.entryType == "expense" && it.date.startsWith(_selectedMonth.value) }.sumOf { it.amount }
                 val now = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
                 budgetRepository.updateSpentAmount(limit.id, spent, now)
             }
@@ -319,7 +318,7 @@ class BudgetViewModel(
                         nextRecurringDate = newDate
                     )
                     budgetRepository.insertBudgetEntry(newEntry)
-                    budgetRepository.updateNextRecurringDate(entry.id, newDate)
+                    budgetRepository.updateNextRecurringDate(entry.id, newDate ?: "")
                 }
             }
         }
